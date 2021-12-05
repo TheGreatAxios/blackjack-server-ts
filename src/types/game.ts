@@ -13,15 +13,17 @@ export interface Table {
     id: number;
     players: Player[];
     timer: number;
-    gameStatus: string; // ACTIVE (When Over -> Over) | OVER (Start Time -> Resete) | RESET (Timer Running)
-    currentHand?: Hand;
+    gameStatus: string; // ACTIVE (When Over -> Over) | OVER (Start Time -> Reset) | RESET (Timer Running)
+    currentHand: Hand;
     hands: Hand[];
     cards: string[]; // 4 Decks
+    cardsUsed: string[];
 }
 
 export interface Hand {
     dealer: string[];
     players: PlayerInGame[];
+    status: number; // Player Number Up or -1 for Dealer
 }
 
 export interface PlayerInGame {
