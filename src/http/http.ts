@@ -2,14 +2,16 @@ import { createServer, Server, Socket } from "net";
 import { stringify } from "querystring";
 import { urlToHttpOptions } from "url";
 import { Handler } from "./httpHandler";
-import { HttpRequest } from './types/request';
+import { HttpRequest } from '../types/request';
+import { WebSocket } from "ws";
+// import { WebSocket } from "../ws/ws";
 
 
-class HttpServer {
+export class HttpServer {
 
     public server: Server;
     public handler: Handler | undefined;
-
+    
     constructor() {
         this.server = createServer((socket: Socket) => {
             this.handler = new Handler(socket);
@@ -45,18 +47,12 @@ class HttpServer {
                 };
                 // console.log(httpRequest.url);
                 this.handler?.handleRequest(httpRequest);
-                socket.end();
+                // socket.end();
+            })
+
+            socket.on('end', () => {
+                // console.log("Connection Cloed?")
             })
         });
     }
 }
-
-const httpServer: HttpServer = new HttpServer();
-
-let app = {};
-
-httpServer.server.listen(8080, () => {
-    console.log("Listening on PORT: ", 8080);
-})
-
-// console.log("Connection: ", httpServer.server.);

@@ -1,7 +1,8 @@
 import { STATUS_CODES } from "http";
 import { Socket } from "net";
-import { HttpRequest } from "./types/request";
-import Game from './game/state';
+import { HttpRequest } from "../types/request";
+import Game from '../game/game';
+import { WebSocket } from 'ws';
 
 type RouteType = {
     [key: string]: any;
@@ -15,11 +16,11 @@ enum Routes {
 export class Handler {
     private socket: Socket;
     private routes: RouteType = {};
-    private game: typeof Game = Game;    
+    private game: typeof Game = Game;
 
     constructor(socket: Socket) {
         this.socket = socket;
-    }    
+    }
 
     public handleRequest = (request: HttpRequest): void => {
         if (request.url === Routes.DEFAULT) {
@@ -35,6 +36,7 @@ export class Handler {
 
     private addPlayerRoute = (req: HttpRequest): void => {
         this.game.addPlayer('1', 'theGreatAxios');
+        this.writeToSocket("Success", 200);
     }
 
     private writeToSocket(data: Object, statusCode: number): void {
@@ -42,7 +44,8 @@ export class Handler {
         this.socket.write(`HTTP/1.1 ${statusCode} ${status}\n\n\n`);
         
         if (statusCode === 200) {
-            this.socket.write(`${JSON.stringify(data)}\n`);
+            this.socket.write(`${JSON.stringify(data)}\n\n`);
+            this.socket.end();
         }
     }
 }

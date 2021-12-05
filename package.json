@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf dist/*",
     "build": "tsc .",
-    "dev:server": "nodemon --watch \"./**/**/*.ts\" --exec \"ts-node\" ./src/http.ts",
+    "dev:server": "nodemon --watch \"./**/**/*.ts\" --exec \"ts-node\" ./src/server.ts",
     "dev:client": "nodemon --watch \"./**/**/*.ts\" --exec \"ts-node\" ./src/client.ts",
     "start:server": "NODE_ENV=production node ./dist/src/server.js",
     "start:client": "NODE_ENV=production node ./dist/src/client.js"
@@ -16,10 +16,14 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^16.11.6",
+    "@types/ws": "^8.2.1",
     "nodemon": "^2.0.14",
     "rimraf": "^3.0.2",
     "ts-node": "^10.4.0",
     "tsc-watch": "^4.5.0",
     "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "ws": "^8.3.0"
   }
 }
