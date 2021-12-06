@@ -41,7 +41,7 @@ export class Handler {
 
     private writeToSocket(data: Object, statusCode: number): void {
         const status: string = STATUS_CODES[statusCode] ?? 'Server Error';
-        this.socket.write(`HTTP/1.1 ${statusCode} ${status}\n\n\n`);
+        // this.socket.write(`HTTP/1.1 101 Switching Protocols\r\n`);
         
         if (statusCode === 200) {
             this.socket.write(`${JSON.stringify(data)}\n\n`);

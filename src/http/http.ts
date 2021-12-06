@@ -15,9 +15,16 @@ export class HttpServer {
     constructor() {
         this.server = createServer((socket: Socket) => {
             this.handler = new Handler(socket);
+            socket.on('connect', () => {
+                // console.log("Connected TO HTTP");
+                // socket.write("HTTP/1.1 200 OK\r\n");
+                // socket.write("Upgrade: websocket\r\n");
+            })
+            
             socket.on('data', (data: Buffer) => {
+                // console.log("FUCK YOU")
                 const bufferToString = data.toString();
-                // console.log(bufferToString);
+                console.log(bufferToString);
                 const bufferList: string[] = bufferToString.split('\n');
                 const requestLine: string[] = bufferList[0].split(' ');
                 const requestLineSplit: string[] = requestLine[1].split('/?');

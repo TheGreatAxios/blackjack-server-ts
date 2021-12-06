@@ -185,7 +185,7 @@ class Game {
     private addTable(): void  {
         const tableLength: number = this.tables.length;
         const table: GameTypes.Table = {
-            id: tableLength + 1,
+            id: tableLength,
             players: [],
             timer: 15000,
             gameStatus: 'RESET',
@@ -210,9 +210,10 @@ class Game {
         return tableId;
     }
 
-    public addPlayer = (id: string, name: string): void => {
+    public addPlayer = (id: string, name: string): GameTypes.Player => {
+        let playerId: number = this.players.length;
         let player: GameTypes.Player = {
-            id: id,
+            id: playerId.toString(),
             name: name,
             balance: 1000,
             cards: [],
@@ -248,6 +249,11 @@ class Game {
             player.ws?.send(JSON.stringify(wsResponse));
         })
 
+        return player;
+    }
+
+    public getTables() {
+        return this.tables;
     }
 
 

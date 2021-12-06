@@ -46,6 +46,10 @@ export interface GameResponse {
     table?: Table | string;
 }
 
+export interface AddUserResponse extends GameResponse {
+    player: Player;
+}
+
 export interface AddUserRequest extends GameRequest {
     playerId: string;
 }
