@@ -13,52 +13,52 @@ class Game {
         this.addTable();
     }
 
-    private runTable(tableId: number): any {
-        if (this.tables[tableId].gameStatus === 'ACTIVE') {
-            this.tables[tableId].timer = 0;
-        } else if (this.tables[tableId].gameStatus === 'OVER') {
-            this.tables[tableId].gameStatus = 'RESET';
-            this.tables[tableId].timer = 15000;
-            this.tables[tableId].players.forEach((player: GameTypes.Player) => {
-                    const wsResponse: GameTypes.GameResponse = {
-                        action: 'RESET_GAME',
-                        roomId: tableId.toString(),
-                        message: 'GAME_OVER',
-                        table: this.tables[tableId]
-                    };
-                    player.ws?.send(JSON.stringify(wsResponse));
-                });
-        } else {
-            let id: NodeJS.Timer = setInterval(() => {
-                if (this.tables[tableId].timer === 0) {
-                    clearInterval(id);
-                    this.tables[tableId].gameStatus = 'ACTIVE';
-                    this.deal(tableId);
-                    this.tables[tableId].players.forEach((player: GameTypes.Player) => {
-                        const wsResponse: GameTypes.GameResponse = {
-                            action: 'NEW_GAME',
-                            roomId: tableId.toString(),
-                            message: 'Starting Next Game',
-                            table: this.tables[tableId]
-                        };
-                        player.ws?.send(JSON.stringify(wsResponse));
-                    });
-                } else {
-                    this.tables[tableId].timer -= 1000;
-                    this.tables[tableId].players.forEach((player: GameTypes.Player) => {
-                        const wsResponse: GameTypes.BetweenGames = {
-                            action: 'PREPARING_NEW_GAME',
-                            roomId: tableId.toString(),
-                            message: 'Loading Next Game',
-                            table: this.tables[tableId],
-                            timer: this.tables[tableId].timer
-                        };
-                        player.ws?.send(JSON.stringify(wsResponse));
-                    });
-                }
-            }, 1000);
-        }
-    }
+    // private runTable(tableId: number): any {
+    //     if (this.tables[tableId].gameStatus === 'ACTIVE') {
+    //         this.tables[tableId].timer = 0;
+    //     } else if (this.tables[tableId].gameStatus === 'OVER') {
+    //         this.tables[tableId].gameStatus = 'RESET';
+    //         this.tables[tableId].timer = 15000;
+    //         this.tables[tableId].players.forEach((player: GameTypes.Player) => {
+    //                 const wsResponse: GameTypes.GameResponse = {
+    //                     action: 'RESET_GAME',
+    //                     roomId: tableId.toString(),
+    //                     message: 'GAME_OVER',
+    //                     table: this.tables[tableId]
+    //                 };
+    //                 player.ws?.send(JSON.stringify(wsResponse));
+    //             });
+    //     } else {
+    //         let id: NodeJS.Timer = setInterval(() => {
+    //             if (this.tables[tableId].timer === 0) {
+    //                 clearInterval(id);
+    //                 this.tables[tableId].gameStatus = 'ACTIVE';
+    //                 this.deal(tableId);
+    //                 this.tables[tableId].players.forEach((player: GameTypes.Player) => {
+    //                     const wsResponse: GameTypes.GameResponse = {
+    //                         action: 'NEW_GAME',
+    //                         roomId: tableId.toString(),
+    //                         message: 'Starting Next Game',
+    //                         table: this.tables[tableId]
+    //                     };
+    //                     player.ws?.send(JSON.stringify(wsResponse));
+    //                 });
+    //             } else {
+    //                 this.tables[tableId].timer -= 1000;
+    //                 this.tables[tableId].players.forEach((player: GameTypes.Player) => {
+                        // const wsResponse: GameTypes.BetweenGames = {
+                        //     action: 'PREPARING_NEW_GAME',
+                        //     roomId: tableId.toString(),
+                        //     message: 'Loading Next Game',
+                        //     table: this.tables[tableId],
+                        //     timer: this.tables[tableId].timer
+                        // };
+    //                     player.ws?.send(JSON.stringify(wsResponse));
+    //                 });
+    //             }
+    //         }, 1000);
+    //     }
+    // }
 
     public deal(tableId: number): void {
         this.tables[tableId].currentHand.players.map((player: GameTypes.PlayerInGame) => {
@@ -71,7 +71,7 @@ class Game {
         if (numberPlayers === 0) {
             this.tables[tableId].gameStatus = 'RESET';
             this.tables[tableId].timer = 15000;
-            this.runTable(tableId);
+            // this.runTable(tableId);
             return;
         } else {
             if (this.tables[tableId].cards.length < (numberPlayers + 1) * 5)  {
@@ -86,7 +86,21 @@ class Game {
                 this.tables[tableId].currentHand.dealer.push(this.tables[tableId].cards.shift() ?? '');
             }
         }
-        
+        this.tables[tableId].currentHand.players.map((player: GameTypes.PlayerInGame) => {
+            player.inGame = true;
+            return player;
+        });
+        const wsResponse: GameTypes.BetweenGames = {
+            action: 'PREPARING_NEW_GAME',
+            roomId: tableId.toString(),
+            message: 'Loading Next Game',
+            table: this.tables[tableId],
+            timer: this.tables[tableId].timer
+        };
+
+        this.tables[tableId].players.forEach((player: GameTypes.Player) => {
+            player.ws?.send(JSON.stringify(wsResponse));
+        });
         
     }
 
@@ -195,7 +209,7 @@ class Game {
             cardsUsed: []
         };
         this.tables.push(table);
-        this.runTable(this.tables.length -1);
+        // this.runTable(this.tables.length -1);
     }
 
     private tableAvailable = () : number => {

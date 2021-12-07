@@ -6,7 +6,7 @@ import { fstat } from 'fs';
 import { createServer } from 'https';
 import { Event, RawData, WebSocket, WebSocketServer } from 'ws';
 import game from "./game/game";
-import { AddUserResponse, AddUserWs, GameRequest, GameResponse, Player, Table } from "./types/game";
+import { AddUserResponse, AddUserWs, GameRequest, GameResponse, Player, Table, UserBetAction, UserHitRequest } from "./types/game";
 const httpServer: HttpServer = new HttpServer();
 // const server = createServer({
 //     cert: fs.readFileSync('./ca.crt'),
@@ -58,6 +58,14 @@ wss.on('connection', (socket: WebSocket) => {
             const connectRequest: AddUserWs = JSON.parse(data.toString());
             console.log("Connect R: ", connectRequest);
             game.addUserWs(parseInt(connectRequest.roomId), parseInt(connectRequest.data.playerId), socket);
+        } else if (request.action === 'USER_HIT') {
+            const userHitRequest: UserHitRequest = JSON.parse(data.toString());
+            game.userHitAction(parseInt(userHitRequest.roomId), parseInt(userHitRequest.playerId));
+        } else if (request.action === 'USER_BET') {
+            const userBetRequest: UserBetAction = JSON.parse(data.toString());
+            game.userBetAction(parseInt(userBetRequest.roomId), parseInt(userBetRequest.playerId), userBetRequest.betAmount);
+        } else if (request.action === 'START_GAME') {
+            game.deal(parseInt(request.roomId));
         }
     })
     console.log("WS Connection Creation");

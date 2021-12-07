@@ -54,6 +54,15 @@ export interface AddUserRequest extends GameRequest {
     playerId: string;
 }
 
+export interface UserHitRequest extends GameRequest {
+    playerId: string;
+}
+
+export interface UserBetAction extends GameRequest {
+    playerId: string;
+    betAmount: number;
+}
+
 export interface AddUserWs extends GameRequest {
     data: {
         playerId: string;
