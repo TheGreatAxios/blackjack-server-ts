@@ -1,53 +1,63 @@
 import { WebSocket } from "ws";
 
-export interface Player {
-    id: string;
+export interface IPlayer {
     name: string;
     balance: number;
-    cards: number[];
-    isActive: false;
+    currentBet: number;
+    currentHand: string[];
+    currentHandValue: number;
+    isActive: boolean;
+    isReady: boolean;
+    hasWon?: boolean;
+    hasBusted?: boolean;
+    hasJoined: boolean;
+    hasBlackjack?: boolean;
+    hasPushed?: boolean;
     ws?: WebSocket;
 }
 
-export interface Table {
-    id: number;
-    players: Player[];
-    timer: number;
-    gameStatus: string; // ACTIVE (When Over -> Over) | OVER (Start Time -> Reset) | RESET (Timer Running)
-    currentHand: Hand;
-    hands: Hand[];
-    cards: string[]; // 4 Decks
-    cardsUsed: string[];
+export interface ITable {
+    playerOne: IPlayer;
+    playerTwo: IPlayer;
+    dealer: IDealer;
+    isGameActive: boolean;
+    isPlayerOneTurn: boolean;
+    isPlayerTwoTurn: boolean;
+    isDealerTurn: boolean;
+    isGameOver: boolean;
+    isDealing: boolean;
+    messages: string[];
+    readyToDeal: boolean;
 }
 
-export interface Hand {
-    dealer: string[];
-    players: PlayerInGame[];
-    status: number; // Player Number Up or -1 for Dealer
+export interface IAction {
+    user: string; // Player One, Player Two, Dealer
+    action: string; // Hit, Stood
 }
 
-export interface PlayerInGame {
-    playerId: string;
-    inGame: boolean;
+export interface IDealer {
     cards: string[];
-    bet: string[];
-    actions: string[]; // HIT | STAND | DOUBLE
+    isActive: boolean;
+    hasBlackjack: boolean;
+    hasBusted: boolean;
+    currentHandValue: number;
 }
 
 export interface GameRequest {
     action: string;
-    roomId: string;
+    name: string;
+    playerNumber?: number;
 }
 
 export interface GameResponse {
     action: string;
     roomId: string;
     message: string;
-    table?: Table | string;
+    table?: ITable | string;
 }
 
 export interface AddUserResponse extends GameResponse {
-    player: Player;
+    player: IPlayer;
 }
 
 export interface AddUserRequest extends GameRequest {

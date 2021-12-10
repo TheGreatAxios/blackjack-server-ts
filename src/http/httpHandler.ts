@@ -35,7 +35,7 @@ export class Handler {
     }
 
     private addPlayerRoute = (req: HttpRequest): void => {
-        this.game.addPlayer('1', 'theGreatAxios');
+        // this.game.addPlayer('1', 'theGreatAxios');
         this.writeToSocket("Success", 200);
     }
 
