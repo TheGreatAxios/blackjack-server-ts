@@ -47,6 +47,7 @@ export interface GameRequest {
     action: string;
     name: string;
     playerNumber?: number;
+    bet?: number;
 }
 
 export interface GameResponse {

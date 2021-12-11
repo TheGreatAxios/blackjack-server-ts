@@ -6,7 +6,7 @@ import { fstat } from 'fs';
 import { createServer } from 'https';
 import { Event, RawData, WebSocket, WebSocketServer } from 'ws';
 import game from "./game/game";
-import { AddUserResponse, AddUserWs, GameRequest, GameResponse, UserBetAction, UserHitRequest } from "./types/game";
+import { AddUserResponse, AddUserWs, GameRequest, GameResponse, ITable, UserBetAction, UserHitRequest } from "./types/game";
 const httpServer: HttpServer = new HttpServer();
 // const server = createServer({
 //     cert: fs.readFileSync('./ca.crt'),
@@ -29,7 +29,8 @@ wss.on('connection', (socket: WebSocket) => {
         const request: GameRequest = JSON.parse(data.toString());
         console.log("Request: ", request);
         if (request.action === 'JOIN') {
-            game.joinGame(request.name, socket);
+            let table: ITable | undefined = game.joinGame(request.name, socket);
+            if (table) socket.send(JSON.stringify(table));
         } else if (request.action === 'READY_UP') {
             game.readyUp(request.playerNumber!);
         } else if (request.action === 'DEAL') {
@@ -38,6 +39,8 @@ wss.on('connection', (socket: WebSocket) => {
             game.hit(request.playerNumber!);
         } else if (request.action === 'STAND') {
             game.stand(request.playerNumber!);
+        } else if (request.action === 'BET') {
+            game.bet(request.playerNumber!, request.bet!);
         }
         // if (request.action === 'NEW_USER') {
         //     const addedSuccessfully: Player = game.addPlayer('1', 'SRC');
