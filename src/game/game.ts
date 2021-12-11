@@ -12,7 +12,7 @@ class Game {
     // private players: GameTypes.Player[] = [];
 
     constructor() {
-        console.log("GAME INIT")
+        // console.log("GAME INIT")
         this.table = this.createTable();
         this.cards = this.rollDecks();
 
@@ -69,28 +69,48 @@ class Game {
         return dealer;
     }
 
-    public joinGame(name: string, ws: WebSocket): void {
+    public joinGame(name: string, ws: WebSocket): ITable | undefined {
+        // console.log("Websocket: ", ws);
         if (!this.table.playerOne.hasJoined) {
             this.table.playerOne.name = name;
             this.table.playerOne.hasJoined = true;
             this.table.playerOne.ws = ws;
-            this.table.playerOne.ws.send(JSON.stringify(this.table));
-            this.table.playerTwo.ws?.send(JSON.stringify(this.table));
+            // let stringifiedTable: string = JSON.stringify(this.table);
+            this.sendToAllPlayers(this.table, 1);
+            // this.table.playerOne.ws?.send(this.table);
+            // this.table.playerTwo.ws?.send(this.table);
         } else if (!this.table.playerTwo.hasJoined) {
             this.table.playerTwo.name = name;
             this.table.playerTwo.hasJoined = true;
             this.table.playerTwo.ws = ws;
-            this.table.playerOne.ws?.send(JSON.stringify(this.table));
-            this.table.playerTwo.ws.send(JSON.stringify(this.table));
+            // let stringifiedTable: string = JSON.stringify(this.table);
+            // this.sendToAllPlayers(this.table, 2, ws);
+            return this.table;
         } else {
             this.sendToSocket(ws, "Sorry, the table is full");
         }
+        
     }
 
-    private sendToAllPlayers(response: any): void {
-        console.log("Table: ", response);
-        this.table.playerOne.ws?.send(JSON.stringify(response));
-        this.table.playerTwo.ws?.send(JSON.stringify(response));
+    private sendToAllPlayers(response: any, playerNumber: number, ws?: WebSocket): void {
+        if (this.table.playerOne.ws) {
+            // console.log("This Table: ", this.table);
+            let localtable: ITable = this.table;
+            // localtable.playerOne.ws = undefined;
+            // localtable.playerTwo.ws = undefined;
+            this.table.playerOne.ws?.send(JSON.stringify(localtable));
+        }
+        if (ws) {
+            // ws.send
+        } else if (this.table.playerTwo.ws) {
+            // console.log("This Table: ", this.table);
+            let localtable: ITable = this.table;
+            // localtable.playerOne.ws = undefined;
+            // localtable.playerTwo.ws = undefined;
+            this.table.playerTwo.ws?.send(JSON.stringify(localtable));
+        }
+        // this.table.playerOne.ws?.send(JSON.stringify(response));
+        // this.table.playerTwo.ws?.send(JSON.stringify(response));
     }
 
     private sendToSocket(ws: WebSocket, response: any): void {
@@ -98,6 +118,7 @@ class Game {
     }
 
     public readyUp(playerNumber: number): void {
+        // console.log("PLayer Number: ", playerNumber);
         const isPlayerOne: boolean = playerNumber === 1;
         const isPlayerTwo: boolean = playerNumber === 2;
         const playerOneInGame: boolean = this.table.playerOne.hasJoined;
@@ -109,7 +130,7 @@ class Game {
         const bothPlayersHaveBet: boolean = playerOneHasBet && playerTwoHasBet;
 
         if (isPlayerOne) {
-            console.log("IS Player One: ", isPlayerOne);
+            // console.log("IS Player One: ", isPlayerOne);
             this.table.playerOne.isReady = true;
         } else if (isPlayerTwo) {
             if (playerTwoHasBet) {
@@ -118,7 +139,7 @@ class Game {
                 this.table.messages.push('Player Two must place bet');
             }
         } else {
-            console.log("Error: Neither Player Selected");
+            // console.log("Error: Neither Player Selected");
         }
 
         if (bothPlayersInGame) {
@@ -131,12 +152,13 @@ class Game {
         } else {
             if (isPlayerOne) {
                 this.table.readyToDeal = true;
+                this.table.playerOne.isActive;
             } else if (isPlayerTwo) {
                 this.table.readyToDeal = true;
             }
         }
 
-        this.sendToAllPlayers(this.table);
+        this.sendToAllPlayers(this.table, playerNumber);
     }
 
     public deal(): void {
@@ -158,6 +180,7 @@ class Game {
             this.table.playerTwo.hasBusted = undefined;
             this.table.dealer.hasBlackjack = false;
             this.table.dealer.hasBusted = false;
+            this.table.playerOne.isActive = true;
         }
 
         const playerOneActive: boolean = this.table.playerOne.isReady;
@@ -174,9 +197,9 @@ class Game {
         if (playerOneActive) this.table.playerOne.currentHand.push(this.cards.shift() ?? '');
         if (playerTwoActive) this.table.playerOne.currentHand.push(this.cards.shift() ?? '');
         this.table.dealer.cards.push(this.cards.shift() ?? '');
-        console.log("P1: ", this.table.playerOne.currentHand)
-        console.log("P2: ", this.table.playerTwo.currentHand)
-        console.log("DE: ", this.table.dealer.cards)
+        // console.log("P1: ", this.table.playerOne.currentHand)
+        // console.log("P2: ", this.table.playerTwo.currentHand)
+        // console.log("DE: ", this.table.dealer.cards)
         this.updateCardValues();
         this.table.isGameActive = true;
         if (playerOneActive) {
@@ -184,7 +207,7 @@ class Game {
         } else if (playerTwoActive) {
             this.table.playerTwo.isActive = true;
         }
-        this.sendToAllPlayers(this.table);
+        this.sendToAllPlayers(this.table, 0);
     }
 
     private updateCardValues(): void {
@@ -197,25 +220,25 @@ class Game {
         let updatedValue: number = 0;
         for (let i = 0; i < this.table.playerOne.currentHand.length; i++) {
             let currentCard: string = this.table.playerOne.currentHand[i];
-            console.log("Current Card V: ", currentCard);
+            // console.log("Current Card V: ", currentCard);
             if (['Q', 'K', 'J'].includes(currentCard[0])) {
-                console.log("FACE");
+                // console.log("FACE");
                 updatedValue += 10;
             } else if (currentCard[0] === 'A') {
-                console.log("ACE");
+                // console.log("ACE");
                 updatedValue += 11;
             } else if (currentCard.length === 3) {
                 updatedValue += 10;
             } else {
-                console.log("NUM");
+                // // console.log("NUM");
                 updatedValue += parseInt(currentCard[0]);
             }
-            console.log("Value IN LOOP: ", this.table.playerOne.currentHandValue)
+            // // console.log("Value IN LOOP: ", this.table.playerOne.currentHandValue)
         }
         this.table.playerOne.currentHandValue = updatedValue;
-        console.log("Value: ", this.table.playerOne.currentHandValue)
+        // // console.log("Value: ", this.table.playerOne.currentHandValue)
         if (this.table.playerOne.currentHandValue < 21) {
-            console.log("HERE");
+            // console.log("");
         } else if (this.table.playerOne.currentHandValue === 21) {
             if (this.table.playerOne.currentHand.length === 2) {
                 this.table.playerOne.hasBlackjack = true;
@@ -226,7 +249,7 @@ class Game {
         } else if (this.table.playerOne.currentHandValue > 21) {
             for (let i = 0; i < this.table.playerOne.currentHand.length; i++) {
                 const currentCard: string = this.table.playerOne.currentHand[i];
-                console.log("Current Card: ", currentCard);
+                // console.log("Current Card: ", currentCard);
                 if (currentCard[0] === 'A') {
                     this.table.playerOne.currentHandValue -= 10;
                     break;
@@ -239,6 +262,10 @@ class Game {
         if (this.table.playerOne.currentHandValue > 21) {
             this.table.playerOne.hasBusted = true;
         }
+
+        // if (this.table.playerTwo.name.length === 0 || !this.table.playerOne.isActive) {
+        //     this.runDealer();
+        // }
     }
 
     private updatePlayerTwoValues(): void {
@@ -305,7 +332,7 @@ class Game {
         } else if (this.table.dealer.currentHandValue > 21) {
             for (let i = 0; i < this.table.dealer.cards.length; i++) {
                 const currentCard: string = this.table.dealer.cards[i];
-                console.log("Current Card: ", currentCard);
+                // console.log("Current Card: ", currentCard);
                 if (currentCard) {
                     if (currentCard[0] === 'A') {
                     this.table.dealer.currentHandValue -= 10;
@@ -337,8 +364,8 @@ class Game {
             .map((value) => ({ value, sort: Math.random() }))
             .sort((a, b) => a.sort - b.sort)
             .map(({ value }) => value)
-        console.log("Cards: ", cards);
-        console.log("Cards L: ", cards.length);
+        // console.log("Cards: ", cards);
+        // console.log("Cards L: ", cards.length);
         return cards;
     }
 
@@ -351,7 +378,7 @@ class Game {
             this.updateCardValues();
         }
 
-        this.sendToAllPlayers(this.table);
+        this.sendToAllPlayers(this.table, playerNumber);
     }
 
     public stand(playerNumber: number): void {
@@ -388,7 +415,7 @@ class Game {
 
         this.runWinners();
 
-        this.sendToAllPlayers(this.table);
+        this.sendToAllPlayers(this.table, 0);
     }
 
     private runWinners(): void {
@@ -405,33 +432,44 @@ class Game {
                 this.table.playerOne.hasBusted = false;
                 this.table.playerOne.hasBlackjack = false;
                 this.table.playerOne.hasPushed = false;
+                this.table.playerOne.balance += this.table.playerOne.currentBet;
+                this.table.playerOne.currentBet = 0;
             }
         } else if (this.table.playerOne.hasBusted) {
             this.table.playerOne.hasWon = false;
             this.table.playerOne.hasBusted = true;
             this.table.playerOne.hasBlackjack = false;
             this.table.playerOne.hasPushed = false;
+            this.table.playerOne.balance -= this.table.playerOne.currentBet;
+            this.table.playerOne.currentBet = 0;
         } else if (this.table.playerOne.hasBlackjack) {
             this.table.playerOne.hasWon = true;
             this.table.playerOne.hasBusted = false;
             this.table.playerOne.hasBlackjack = true;
             this.table.playerOne.hasPushed = false;
+            this.table.playerOne.balance += Math.round((3/2) * this.table.playerOne.currentBet);
+            this.table.playerOne.currentBet = 0;
         } else {
             if (this.table.dealer.currentHandValue === this.table.playerOne.currentHandValue) {
                 this.table.playerOne.hasWon = false;
                 this.table.playerOne.hasBusted = false;
                 this.table.playerOne.hasBlackjack = false;
                 this.table.playerOne.hasPushed = true;
+                this.table.playerOne.currentBet = 0;
             } else if (this.table.dealer.currentHandValue > this.table.playerOne.currentHandValue) {
                 this.table.playerOne.hasWon = false;
                 this.table.playerOne.hasBusted = false;
                 this.table.playerOne.hasBlackjack = false;
-                this.table.playerOne.hasPushed = false;
+                this.table.playerOne.hasPushed = false
+                this.table.playerOne.balance -= this.table.playerOne.currentBet;
+                this.table.playerOne.currentBet = 0;;
             } else {
                 this.table.playerOne.hasWon = true;
                 this.table.playerOne.hasBusted = false;
                 this.table.playerOne.hasBlackjack = false;
                 this.table.playerOne.hasPushed = true;
+                this.table.playerOne.balance += this.table.playerOne.currentBet;
+                this.table.playerOne.currentBet = 0;
             }
         }
         return this.table;
@@ -454,6 +492,20 @@ class Game {
             }
         }
         return this.table;
+    }
+
+    public bet(playerNumber: number, bet: number): void {
+        const isPlayerOne: boolean = playerNumber === 1;
+        const isPlayerTwo: boolean = playerNumber === 2;
+        
+        if (playerNumber === 1) {
+            const hasFunds: boolean = this.table.playerOne.balance - bet > 0;
+            if (hasFunds) {
+                this.table.playerOne.currentBet += bet;
+            }
+        }
+        console.log(this.table.playerOne)
+        this.sendToAllPlayers(this.table, playerNumber);
     }
 }
 
